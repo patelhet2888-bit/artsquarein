@@ -1,0 +1,6 @@
+import Link from "next/link";
+import { Instagram, ArrowUpRight } from "lucide-react";
+
+export function SiteFooter() {
+  return <footer className="site-footer"><div className="footer-main"><div className="footer-brand"><Link href="/" className="footer-logo">ART SQUARE</Link><p>Thoughtfully handmade art for the spaces and rituals that make a home.</p><span className="footer-tagline">WHERE ART MEETS ELEGANCE</span></div><div className="footer-column"><h2>Explore</h2><Link href="/shop">All creations</Link><Link href="/collections">Collections</Link><Link href="/about">Our story</Link><Link href="/contact">Custom orders</Link></div><div className="footer-column"><h2>Get in touch</h2><a href="https://wa.me/919054934190" target="_blank" rel="noreferrer">WhatsApp <ArrowUpRight size={14} /></a><a href="https://www.instagram.com/art_square_in/" target="_blank" rel="noreferrer">Instagram <Instagram size={14} /></a><span>Worldwide enquiries welcome</span><span>Shipping details on enquiry</span></div><div className="footer-column"><h2>Information</h2><Link href="/privacy">Privacy</Link><Link href="/shipping">Shipping & enquiries</Link></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} ART SQUARE. Made with intention.</span><span>Handmade in India</span></div></footer>;
+}
