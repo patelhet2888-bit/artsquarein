@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client";
 import { ArrowRight } from "lucide-react";
 
 export function NewsletterForm() {
@@ -15,11 +15,7 @@ export function NewsletterForm() {
     const data = new FormData(form);
     const email = String(data.get("email") ?? "").trim().toLowerCase();
     try {
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-      if (!url || !key) throw new Error("Newsletter sign-up is temporarily unavailable. Please contact us on WhatsApp.");
-      const supabase = createBrowserClient(url, key);
-      const { error } = await supabase.from("newsletter_subscribers").insert({ email });
+      const { error } = await createClient().from("newsletter_subscribers").insert({ email });
       if (error?.code === "23505") setStatus({ type: "success", text: "You’re already on our list. We’re glad you’re here." });
       else if (error) throw error;
       else { setStatus({ type: "success", text: "Thank you. You’re on the ART SQUARE list." }); form.reset(); }
