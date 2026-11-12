@@ -1,47 +1,52 @@
 # ART SQUARE
 
-A premium, responsive storefront for ART SQUARE, a handmade Indian art and home décor studio. The site is enquiry-first: product discovery and detail pages lead to WhatsApp, with no cart, online checkout, payment gateway, stated prices or unverified stock and shipping claims.
+A responsive, enquiry-first storefront for ART SQUARE, a handmade Indian art and home décor studio. Customers can browse eight collections and 25 catalogue entries with all 32 original product photographs, save a wishlist, build an enquiry bag, and contact the business through WhatsApp. Prices, stock, shipping terms and online payment are not invented or implied.
 
 ## Stack
 
-- Next.js App Router and TypeScript
-- Tailwind CSS 4 and custom responsive design system
-- Framer Motion (available for interaction and motion work) and Lucide React
-- Supabase Postgres for newsletter sign-ups
+- Next.js 16 App Router, React 19 and TypeScript
+- Tailwind CSS 4 and the ART SQUARE responsive design system
+- Lucide React
+- Supabase Postgres for newsletter subscriptions and private Storage for reference images
 - Vercel deployment
 
 ## Local development
 
 1. Install Node.js 20.9 or later.
 2. Install dependencies with `npm install`.
-3. Create `.env.local` from the variables below, or configure the same names in your Vercel project.
+3. Configure the environment variables below in `.env.local` or in the linked Vercel project.
 4. Start the development server with `npm run dev` and open `http://localhost:3000`.
-5. Run `npm run typecheck` and `npm run build` to verify a release.
+5. Run `npm run typecheck`, `npm run lint` and `npm run build` to verify a release.
+
+Run `npm run images:optimize` to regenerate the 32 WebP assets from the original JPEGs in the repository root. The script leaves every source JPEG untouched and writes descriptive files to `public/images/products/`.
 
 ## Environment variables
 
 | Name | Required | Purpose |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Newsletter sign-ups | Connected Supabase project URL. |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Newsletter sign-ups | Public Supabase client key; table access is constrained by RLS. Never use a service-role key in browser code. |
-| `NEXT_PUBLIC_SITE_URL` | Recommended | Canonical site origin used for metadata and sitemap, e.g. `https://your-domain.example`. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Newsletter | Supabase URL for the public newsletter form. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Newsletter | Public client key; newsletter access is constrained by RLS. |
+| `SUPABASE_URL` | Reference-image uploads | Server-side Supabase URL. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Reference-image uploads | Server-only key used by the upload route. Never expose it to client code. |
+| `NEXT_PUBLIC_SITE_URL` | Recommended | Canonical site origin used for metadata and sitemap. |
+| `NEXT_PUBLIC_BUSINESS_EMAIL` | Optional | Public contact email shown only when configured. |
 
-Supabase environment values are available to the Vercel-connected project. The app reports a newsletter error if Supabase configuration or the database is unavailable; it does not claim a sign-up succeeded unless the database insert succeeds.
+The Vercel-connected Supabase integration supplies the database and storage variables. Newsletter submissions are reported as successful only after a database insert succeeds.
 
 ## Supabase setup
 
-The `supabase/migrations/20261112000000_create_newsletter_subscribers.sql` migration creates `public.newsletter_subscribers` with a unique, length-checked email, and enables RLS. Anonymous users may only insert normalized, format-checked addresses. There is no public read, update or delete policy. This migration is also applied to the Supabase integration connected to this project.
+- `20261112000000_create_newsletter_subscribers.sql` creates `public.newsletter_subscribers` with RLS and a restricted anonymous insert policy.
+- `20261112000200_create_private_order_reference_bucket.sql` creates the private `art-square-order-references` bucket. The bucket allows JPEG, PNG and WebP files up to 5 MB. The form caps uploads at 4 MB to stay within typical serverless request limits, verifies file signatures, and creates a seven-day signed link. Uploaded objects remain private until an operator removes them; the current site does not retain the rest of the custom-order form fields.
+- The service-role key is used only in the server route and never returned to the browser.
 
-The optional product admin dashboard is not enabled: product details remain in `lib/products.ts` and there is no admin login, product editing API or image-upload surface to secure. Do not add admin routes without implementing Supabase Auth and admin-only RLS policies first.
+Product and collection information is centrally maintained in `lib/products.ts`. No customer account or admin product editor is enabled.
 
-## Products and photographs
+## Catalogue and ordering
 
-The original uploaded photographs remain preserved in the repository root. Selected originals are copied into `public/products/` for optimized, local storefront delivery. `lib/products.ts` is the editable catalogue and includes product IDs, slugs, categories, descriptions, photographs, material/dimension enquiry labels, customization flags, availability enquiry status and featured status. Prices and variants are left unset where not supplied.
+The 32 original source JPEGs are preserved at the repository root. The image-optimization script generates 32 descriptive WebP versions, and `lib/products.ts` maps each source photograph into a product gallery. Product IDs and visual descriptions are provided; prices, material specifications, dimensions and variant availability remain unset unless verified.
 
-## Ordering and contact
-
-The shared floating WhatsApp action and product-specific enquiry links use `+91 90549 34190`. The custom-order form validates the required fields and prepares a prefilled WhatsApp message. The visitor reviews and sends that message; the site never reports that an enquiry was delivered before the visitor submits it in WhatsApp. Instagram: [@art_square_in](https://www.instagram.com/art_square_in/).
+The enquiry bag and wishlist use in-memory client state and clear on a full page refresh. WhatsApp is the checkout handoff; the site does not collect payment or claim that a message was sent until the customer sends it in WhatsApp. Business WhatsApp: +91 90549 34190. Instagram: [@art_square_in](https://www.instagram.com/art_square_in/).
 
 ## Deployment
 
-Connect the repository to Vercel, keep the Supabase public environment variables configured for the Production and Preview environments, set `NEXT_PUBLIC_SITE_URL` to the canonical domain, and deploy. The application includes generated sitemap and robots routes, product metadata and JSON-LD, responsive image sizes, semantic navigation and baseline response security headers.
+Set `NEXT_PUBLIC_SITE_URL` to the canonical domain, optionally set `NEXT_PUBLIC_BUSINESS_EMAIL`, and deploy through the connected Vercel project. Keep Supabase public and server-only credentials in their correct environments. The site includes per-page metadata, product structured data without fabricated offers, sitemap and robots routes, semantic navigation, responsive images and baseline response security headers.
