@@ -3,17 +3,19 @@ import Link from "next/link";
 
 type BrandLogoProps = {
   size: "header" | "footer";
+  imageUrl?: string;
+  brandName?: string;
 };
 
-export function BrandLogo({ size }: BrandLogoProps) {
+export function BrandLogo({ size, imageUrl, brandName = "ART SQUARE" }: BrandLogoProps) {
   return (
     <Link
       href="/"
       className={`brand-logo brand-logo--${size}`}
-      aria-label="ART SQUARE — Where Art Meets Elegance home"
+      aria-label={`${brandName} home`}
     >
       <Image
-        src="/logo/art-square-logo.png"
+        src={imageUrl ?? "/logo/art-square-logo.png"}
         alt=""
         width={1254}
         height={1254}

@@ -5,15 +5,12 @@ import { ArrowLeft, ArrowUpRight, Check, Globe2 } from "lucide-react";
 import { ProductActions } from "@/components/product-actions";
 import { ProductCard } from "@/components/product-card";
 import { ProductGallery } from "@/components/product-gallery";
-import { formatPrice, getProduct, products } from "@/lib/products";
-
-export function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
-}
+import { formatPrice } from "@/lib/format";
+import { getProduct, getProductsByCategory } from "@/lib/products";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   return product ? {
     title: product.name,
     description: `${product.description} Enquire about price, availability and shipping directly with ART SQUARE on WhatsApp.`,
@@ -23,19 +20,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   if (!product) notFound();
-  const related = products.filter((item) => item.id !== product.id && item.category === product.category).slice(0, 3);
+  const related = (await getProductsByCategory(product.categoryId)).filter((item) => item.id !== product.id).slice(0, 3);
+  const productUrl = new URL(`/product/${product.slug}`, process.env.NEXT_PUBLIC_SITE_URL ?? "https://artsquarein.com").toString();
   const schema = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    sku: product.id,
+    sku: product.productCode,
     description: product.description,
     image: product.images.map(({ src }) => src),
     brand: { "@type": "Brand", name: "ART SQUARE" },
     category: product.category,
-    url: new URL(`/product/${product.slug}`, process.env.NEXT_PUBLIC_SITE_URL ?? "https://artsquarein.com").toString(),
+    url: productUrl,
   };
 
   return <main id="main-content" className="product-page">
@@ -44,7 +42,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <div className="product-detail">
       <ProductGallery images={product.images} name={product.name} />
       <div className="product-info">
-        <span className="eyebrow">{product.category} · {product.id}</span>
+        <span className="eyebrow">{product.category} · {product.productCode}</span>
         <h1>{product.name}</h1>
         <p className="product-description">{product.description}</p>
         <p className="availability"><span className="availability-dot" />{product.availability}</p>
@@ -54,7 +52,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div><span>Customization</span><strong>{product.customization}</strong></div>
           <div><span>Price</span><strong>{formatPrice(product.price)}</strong></div>
         </div>
-        <ProductActions product={product} />
+        <ProductActions product={product} productUrl={productUrl} />
         <p className="shipping-note"><Globe2 size={15} /> Ask us about confirmed availability and shipping to your location.</p>
         <div className="product-promises"><span><Check size={14} /> Handmade in India</span><span><Check size={14} /> Enquiry-based ordering</span></div>
         {product.variants.length > 0 && <div className="product-variants"><span className="eyebrow">Available options</span><ul>{product.variants.map((variant) => <li key={variant}>{variant}</li>)}</ul></div>}
