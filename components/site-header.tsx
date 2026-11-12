@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Heart, Instagram, Menu, Search, ShoppingBag } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 import { useShop } from "@/components/shop-provider";
 
 const links = [
@@ -19,10 +20,7 @@ export function SiteHeader() {
   return <>
     <div className="announcement"><span>Handcrafted with Love</span><span className="announcement-dot" aria-hidden="true">✦</span><span>Custom Creations Available</span></div>
     <header className="site-header">
-      <Link href="/" className="brand" aria-label="ART SQUARE home">
-        <span className="brand-mark" aria-hidden="true">A<span>S</span></span>
-        <span className="brand-copy"><strong>ART SQUARE</strong><small>WHERE ART MEETS ELEGANCE</small></span>
-      </Link>
+      <BrandLogo size="header" />
       <nav className="desktop-nav" aria-label="Main navigation">{links.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}</nav>
       <div className="header-actions">
         <a className="icon-link instagram-link" href="https://www.instagram.com/art_square_in/" aria-label="Visit ART SQUARE on Instagram" target="_blank" rel="noreferrer"><Instagram size={18} strokeWidth={1.5} /></a>
