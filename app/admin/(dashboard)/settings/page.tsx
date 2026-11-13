@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AdminSettingsForm } from "@/components/admin/admin-settings-form";
 import { createClient } from "@/lib/supabase/server";
+import { WHATSAPP_PHONE } from "@/lib/whatsapp";
 
 export const metadata: Metadata = { title: "Site settings · Admin", robots: { index: false, follow: false } };
 
@@ -15,6 +16,6 @@ export default async function AdminSettingsPage() {
 
   return <section>
     <div className="admin-page-heading"><div><span className="admin-kicker">STOREFRONT CONFIGURATION</span><h1>Site settings</h1><p>Update the business details and homepage content shown across the public storefront.</p></div></div>
-    <AdminSettingsForm settings={settings} mediaAssets={mediaAssets} />
+    <AdminSettingsForm settings={{ ...settings, whatsapp_number: WHATSAPP_PHONE }} mediaAssets={mediaAssets} officialContactEmail={process.env.CONTACT_EMAIL?.trim() || undefined} />
   </section>;
 }

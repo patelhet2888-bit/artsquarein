@@ -5,20 +5,21 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { WHATSAPP_PHONE } from "@/lib/whatsapp";
 import type { Database } from "@/lib/supabase/database.types";
 import type { MediaAsset } from "@/lib/media-upload";
 
 type SettingsRow = Database["public"]["Tables"]["site_settings"]["Row"];
 type EditableSettings = Pick<SettingsRow, "brand_name" | "tagline" | "whatsapp_number" | "instagram_url" | "contact_email" | "announcement_text" | "hero_headline" | "hero_subheadline" | "hero_cta_label" | "hero_media_id" | "logo_media_id">;
 
-export function AdminSettingsForm({ settings, mediaAssets }: { settings: SettingsRow; mediaAssets: MediaAsset[] }) {
+export function AdminSettingsForm({ settings, mediaAssets, officialContactEmail }: { settings: SettingsRow; mediaAssets: MediaAsset[]; officialContactEmail?: string }) {
   const router = useRouter();
   const [values, setValues] = useState<EditableSettings>({
     brand_name: settings.brand_name,
     tagline: settings.tagline,
-    whatsapp_number: settings.whatsapp_number,
+    whatsapp_number: WHATSAPP_PHONE,
     instagram_url: settings.instagram_url,
-    contact_email: settings.contact_email,
+    contact_email: officialContactEmail ?? settings.contact_email,
     announcement_text: settings.announcement_text,
     hero_headline: settings.hero_headline,
     hero_subheadline: settings.hero_subheadline,
@@ -57,7 +58,7 @@ export function AdminSettingsForm({ settings, mediaAssets }: { settings: Setting
       ...values,
       brand_name: values.brand_name.trim(),
       tagline: values.tagline.trim(),
-      whatsapp_number: values.whatsapp_number.replace(/[^0-9]/g, ""),
+      whatsapp_number: WHATSAPP_PHONE,
       instagram_url: values.instagram_url.trim(),
       contact_email: values.contact_email?.trim() || null,
       announcement_text: values.announcement_text.trim(),
@@ -88,9 +89,9 @@ export function AdminSettingsForm({ settings, mediaAssets }: { settings: Setting
       <div className="admin-form-grid">
         <label className="admin-field"><span>Brand name</span><input required maxLength={100} value={values.brand_name} onChange={(event) => update("brand_name", event.target.value)} /></label>
         <label className="admin-field"><span>Tagline</span><input maxLength={180} value={values.tagline} onChange={(event) => update("tagline", event.target.value)} /></label>
-        <label className="admin-field"><span>WhatsApp number (country code, digits only)</span><input required inputMode="numeric" pattern="[0-9]{6,16}" maxLength={16} value={values.whatsapp_number} onChange={(event) => update("whatsapp_number", event.target.value.replace(/[^0-9]/g, ""))} /></label>
+        <label className="admin-field"><span>Official WhatsApp number</span><input inputMode="numeric" value={WHATSAPP_PHONE} readOnly aria-describedby="official-whatsapp-note" /><small id="official-whatsapp-note">Used consistently across the storefront and enquiry links.</small></label>
         <label className="admin-field"><span>Instagram URL</span><input type="url" required maxLength={300} value={values.instagram_url} onChange={(event) => update("instagram_url", event.target.value)} /></label>
-        <label className="admin-field"><span>Public contact email</span><input type="email" maxLength={254} value={values.contact_email ?? ""} onChange={(event) => update("contact_email", event.target.value)} /></label>
+        <label className="admin-field"><span>Public contact email</span><input type="email" maxLength={254} value={values.contact_email ?? ""} readOnly={Boolean(officialContactEmail)} onChange={(event) => update("contact_email", event.target.value)} />{officialContactEmail && <small>Managed by the project&apos;s existing contact setting.</small>}</label>
         <label className="admin-field"><span>Announcement bar</span><input maxLength={180} value={values.announcement_text} onChange={(event) => update("announcement_text", event.target.value)} /></label>
         <label className="admin-field admin-field-full"><span>Homepage headline</span><input required maxLength={200} value={values.hero_headline} onChange={(event) => update("hero_headline", event.target.value)} /></label>
         <label className="admin-field admin-field-full"><span>Homepage subheadline</span><textarea required rows={4} maxLength={600} value={values.hero_subheadline} onChange={(event) => update("hero_subheadline", event.target.value)} /></label>

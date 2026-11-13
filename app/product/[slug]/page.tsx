@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const product = await getProduct(slug);
   return product ? {
     title: product.name,
-    description: `${product.description} Enquire about price, availability and shipping directly with ART SQUARE on WhatsApp.`,
+    description: `${product.description} Ask ART SQUARE about price, availability and shipping by WhatsApp or the product enquiry form.`,
     openGraph: { title: `${product.name} | ART SQUARE`, description: product.description, images: product.images.slice(0, 1).map((image) => ({ url: image.src, alt: image.alt })) },
   } : { title: "Piece not found" };
 }

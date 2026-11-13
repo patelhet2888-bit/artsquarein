@@ -14,5 +14,10 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     .maybeSingle();
   if (error || !admin) redirect("/admin/login?error=not_admin");
 
-  return <AdminShell>{children}</AdminShell>;
+  const { count: newEnquiryCount } = await supabase
+    .from("enquiries")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "new");
+
+  return <AdminShell newEnquiryCount={newEnquiryCount ?? 0}>{children}</AdminShell>;
 }

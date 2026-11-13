@@ -13,7 +13,8 @@ export default async function AdminEnquiriesPage() {
     .limit(150);
 
   return <section>
-    <div className="admin-page-heading"><div><span className="admin-kicker">CUSTOMER MESSAGES</span><h1>Enquiries</h1><p>Review customer details and follow each message from new to closed.</p></div></div>
+    <div className="admin-page-heading"><div><span className="admin-kicker">CUSTOMER MESSAGES</span><h1>Enquiries</h1><p>Search and manage customer messages, delivery status and follow-up.</p></div></div>
+    <div className="admin-email-warning" role="status"><strong>Email notifications are not configured.</strong> Enquiries submitted now are saved in this inbox, but no email is sent to the business account.</div>
     <AdminEnquiryManager enquiries={enquiries ?? []} />
   </section>;
 }
