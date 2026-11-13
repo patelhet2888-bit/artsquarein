@@ -8,7 +8,22 @@ export const ENQUIRY_TYPES = [
 ] as const;
 
 export type EnquiryType = (typeof ENQUIRY_TYPES)[number];
-export type EmailDeliveryStatus = "Pending" | "Sent" | "Failed";
+export const WORKFLOW_STATUSES = ["New", "Pending", "In Progress", "Completed"] as const;
+export type WorkflowStatus = (typeof WORKFLOW_STATUSES)[number];
+export type EmailDeliveryStatus = "Pending" | "Sent" | "Failed" | "Not Configured";
+
+export function databaseStatusForWorkflow(status: WorkflowStatus) {
+  if (status === "New") return "new";
+  if (status === "Completed") return "closed";
+  return "contacted";
+}
+
+export function workflowStatusFromDatabase(status: string, details?: Pick<StoredEnquiryDetails, "workflowStatus"> | null): WorkflowStatus {
+  if (details?.workflowStatus) return details.workflowStatus;
+  if (status === "closed") return "Completed";
+  if (status === "contacted") return "Pending";
+  return "New";
+}
 
 type StoredProductDetails = {
   id: string;
@@ -26,6 +41,7 @@ export type StoredEnquiryDetails = {
   additionalDetails: string[];
   emailDeliveryStatus: EmailDeliveryStatus;
   emailDeliveryNote: string;
+  workflowStatus?: WorkflowStatus;
   product?: StoredProductDetails;
 };
 
@@ -49,9 +65,12 @@ export function parseEnquiryDetails(value: string): StoredEnquiryDetails | null 
     const enquiryType = ENQUIRY_TYPES.includes(parsed.enquiryType as EnquiryType)
       ? (parsed.enquiryType as EnquiryType)
       : "General Enquiry";
-    const emailDeliveryStatus = parsed.emailDeliveryStatus === "Sent" || parsed.emailDeliveryStatus === "Pending"
+    const emailDeliveryStatus = parsed.emailDeliveryStatus === "Sent"
+      || parsed.emailDeliveryStatus === "Pending"
+      || parsed.emailDeliveryStatus === "Failed"
+      || parsed.emailDeliveryStatus === "Not Configured"
       ? parsed.emailDeliveryStatus
-      : "Failed";
+      : "Not Configured";
     const productRecord = isRecord(parsed.product) ? parsed.product : null;
     const product = productRecord
       && typeof productRecord.id === "string"
@@ -77,6 +96,9 @@ export function parseEnquiryDetails(value: string): StoredEnquiryDetails | null 
         : [],
       emailDeliveryStatus,
       emailDeliveryNote: typeof parsed.emailDeliveryNote === "string" ? parsed.emailDeliveryNote : "",
+      workflowStatus: WORKFLOW_STATUSES.includes(parsed.workflowStatus as WorkflowStatus)
+        ? (parsed.workflowStatus as WorkflowStatus)
+        : undefined,
       product,
     };
   } catch {

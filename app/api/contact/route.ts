@@ -110,8 +110,8 @@ export async function POST(request: Request) {
   if (country.length < 2 || country.length > 80) {
     return jsonResponse({ error: "Enter your country or region." }, 400);
   }
-  if (whatsappNumber && !phonePattern.test(whatsappNumber)) {
-    return jsonResponse({ error: "Enter a valid WhatsApp number, including the country code." }, 400);
+  if (!whatsappNumber || !phonePattern.test(whatsappNumber) || whatsappNumber.replace(/\D/g, "").length < 6) {
+    return jsonResponse({ error: "Enter a valid WhatsApp number with at least 6 digits, including the country code." }, 400);
   }
   if (subject.length < 3 || subject.length > 160) {
     return jsonResponse({ error: "Keep the subject between 3 and 160 characters." }, 400);
@@ -157,6 +157,10 @@ export async function POST(request: Request) {
     if (!matchedProduct) matchedProduct = await lookup("name", productReference);
   }
 
+  if (enquiryType === "Product Enquiry" && !matchedProduct) {
+    return jsonResponse({ error: "This product is no longer available. Please choose a published product and try again." }, 400);
+  }
+
   const requestOrigin = request.headers.get("origin");
   const productDetails = matchedProduct && requestOrigin
     ? {
@@ -176,10 +180,16 @@ export async function POST(request: Request) {
     subject,
     message,
     additionalDetails,
-    emailDeliveryStatus: "Failed",
-    emailDeliveryNote: "No email provider is configured, so no notification was sent.",
+    emailDeliveryStatus: "Not Configured",
+    emailDeliveryNote: "No email provider is configured, so no automatic notification or confirmation was sent.",
+    workflowStatus: "New",
     product: productDetails,
   };
+  const storedMessage = serializeEnquiryDetails(storedDetails);
+
+  if (storedMessage.length > 5000) {
+    return jsonResponse({ error: "Your message and extra details are too long to save. Shorten them and try again." }, 400);
+  }
 
   const { error } = await supabase.from("enquiries").insert({
     name,
@@ -189,7 +199,7 @@ export async function POST(request: Request) {
     product_id: matchedProduct?.id ?? null,
     product_name_snapshot: matchedProduct?.name ?? productReference,
     product_code_snapshot: matchedProduct?.product_code ?? "",
-    message: serializeEnquiryDetails(storedDetails),
+    message: storedMessage,
     status: "new",
   });
 
@@ -198,9 +208,9 @@ export async function POST(request: Request) {
   }
 
   return jsonResponse({
-    ok: false,
+    ok: true,
     saved: true,
-    emailDeliveryStatus: "Failed",
-    error: "Your enquiry was saved, but email notifications are not configured, so the team was not notified. Please contact us on WhatsApp if your request is urgent.",
-  }, 503);
+    emailDeliveryStatus: "Not Configured",
+    error: "Your enquiry was saved, but automatic email notifications are not configured. Please contact us on WhatsApp if your request is urgent.",
+  }, 202);
 }

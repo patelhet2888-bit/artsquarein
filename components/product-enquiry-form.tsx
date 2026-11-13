@@ -109,12 +109,12 @@ export function ProductEnquiryForm({ product, productUrl, settings }: {
     </div>
     <div className="form-row">
       <div className="field"><label htmlFor="product-enquiry-country">Country</label><input id="product-enquiry-country" name="country" autoComplete="country-name" required minLength={2} maxLength={80} /></div>
-      <div className="field"><label htmlFor="product-enquiry-whatsapp">WhatsApp number <span>(optional)</span></label><input id="product-enquiry-whatsapp" name="whatsappNumber" type="tel" autoComplete="tel" pattern="([+]?[0-9 ()-]{6,32})?" maxLength={32} /></div>
+      <div className="field"><label htmlFor="product-enquiry-whatsapp">WhatsApp number</label><input id="product-enquiry-whatsapp" name="whatsappNumber" type="tel" autoComplete="tel" pattern="[+]?[0-9 ()-]{6,32}" maxLength={32} required title="Enter a WhatsApp number with at least 6 digits." /></div>
     </div>
     <div className="field"><label htmlFor="product-enquiry-customization">Customization requirements <span>(optional)</span></label><input id="product-enquiry-customization" name="customization" maxLength={500} placeholder="Size, colour, personalization or other details" /></div>
     <div className="field"><label htmlFor="product-enquiry-message">Message</label><textarea id="product-enquiry-message" name="message" rows={4} required minLength={3} maxLength={3000} placeholder="Ask about price, availability or shipping." /></div>
-    <button className="button button-dark" type="submit" disabled={isSubmitting || isSaved}>{isSubmitting ? "Sending…" : isSaved ? "Saved · email not sent" : "Send product enquiry"} <ArrowUpRight size={16} /></button>
-    <p className={`form-note${isSaved ? " is-warning" : ""}`} aria-live="polite" role={isSaved ? "alert" : "status"}>{status || "Email notifications are currently unavailable. Your enquiry will be saved and you can follow up on WhatsApp."}</p>
+    <button className="button button-dark" type="submit" disabled={isSubmitting || isSaved}>{isSubmitting ? "Sending…" : isSaved ? "Saved · email unavailable" : "Send product enquiry"} <ArrowUpRight size={16} /></button>
+    <p className={`form-note${isSaved ? " is-warning" : ""}`} aria-live="polite" role={isSaved ? "alert" : "status"}>{status || "Your enquiry will be saved to our secure inbox. Automatic email notifications are not configured; use WhatsApp for urgent requests."}</p>
     {whatsappHref && <a className="button-primary form-whatsapp-link" href={whatsappHref} target="_blank" rel="noreferrer">Continue to WhatsApp <ArrowUpRight size={16} /></a>}
   </form>;
 }

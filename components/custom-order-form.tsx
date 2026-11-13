@@ -132,7 +132,7 @@ export function CustomOrderForm({ categories, settings }: { categories: ProductC
     </div>
     <div className="form-row">
       <div className="field"><label htmlFor="custom-order-country">Country</label><input id="custom-order-country" name="country" autoComplete="country-name" required minLength={2} maxLength={80} /></div>
-      <div className="field"><label htmlFor="custom-order-phone">WhatsApp contact <span>(optional)</span></label><input id="custom-order-phone" name="phone" type="tel" autoComplete="tel" pattern="([+]?[0-9 ()-]{6,32})?" maxLength={32} placeholder="Include country code" /></div>
+      <div className="field"><label htmlFor="custom-order-phone">WhatsApp contact</label><input id="custom-order-phone" name="phone" type="tel" autoComplete="tel" pattern="[+]?[0-9 ()-]{6,32}" maxLength={32} placeholder="Include country code" required title="Enter a WhatsApp number with at least 6 digits." /></div>
     </div>
     <div className="form-row">
       <div className="field"><label htmlFor="custom-order-type">Artwork type</label><select id="custom-order-type" name="category" defaultValue={categories[0]?.name ?? "Other"}><option>Other</option>{categories.map((category) => <option key={category.id}>{category.name}</option>)}</select></div>
@@ -149,8 +149,8 @@ export function CustomOrderForm({ categories, settings }: { categories: ProductC
     </div>
     <div className="field"><label htmlFor="custom-order-details">Customization description</label><textarea id="custom-order-details" name="details" rows={5} required minLength={3} maxLength={3000} placeholder="Tell us about the occasion, personal touches and any other requirements." /></div>
     <div className="field"><label htmlFor="custom-order-reference"><ImagePlus size={15} aria-hidden="true" /> Reference image <span>(optional)</span></label><input id="custom-order-reference" name="reference" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="reference-note" /><small id="reference-note">JPEG, PNG or WebP · up to 4 MB · stored privately; the share link expires after 7 days.</small></div>
-    <button className="button button-dark" type="submit" disabled={isSubmitting || isSaved}>{isSubmitting ? "Saving…" : isSaved ? "Saved · email not sent" : "Send custom order enquiry"} <ArrowUpRight size={16} /></button>
-    <p className={`form-note${isSaved ? " is-warning" : ""}`} aria-live="polite" role={isSaved ? "alert" : "status"}>{status || "Your custom order request is saved securely. Email notifications are currently unavailable; use WhatsApp for urgent requests."}</p>
+    <button className="button button-dark" type="submit" disabled={isSubmitting || isSaved}>{isSubmitting ? "Saving…" : isSaved ? "Saved · email unavailable" : "Send custom order enquiry"} <ArrowUpRight size={16} /></button>
+    <p className={`form-note${isSaved ? " is-warning" : ""}`} aria-live="polite" role={isSaved ? "alert" : "status"}>{status || "Your custom order request will be saved to our secure inbox. Automatic email notifications are not configured; use WhatsApp for urgent requests."}</p>
     {whatsappHref && <a className="button-primary form-whatsapp-link" href={whatsappHref} target="_blank" rel="noreferrer">Continue to WhatsApp <ArrowUpRight size={16} /></a>}
   </form>;
 }
