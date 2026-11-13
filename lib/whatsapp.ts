@@ -15,8 +15,9 @@ export function productEnquiryMessage(product: Product, quantity = 1, productUrl
     `Product: ${product.name}`,
     `Product ID: ${product.productCode}`,
     `Quantity: ${quantity}`,
-    `Price: ${product.price === undefined ? "Please share the price" : `₹${product.price.toLocaleString("en-IN")}`}`,
-    "Please share current availability and delivery details.",
+    `Price: ${product.price === undefined ? "Please share current pricing" : `₹${product.price.toLocaleString("en-IN")}`}`,
+    `Availability enquiry: Please confirm availability for ${quantity}. Current listing: ${product.availability}.`,
+    "Delivery enquiry: Please share delivery options, charges, and estimated timing.",
     productUrl ? `Product link: ${productUrl}` : undefined,
   ]
     .filter(Boolean)

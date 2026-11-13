@@ -14,7 +14,29 @@ type ProductImageSelection = { asset: MediaAsset; altText: string; isPrimary: bo
 type InitialProduct = ProductRow & { images: ProductImageSelection[] };
 
 function toSlug(value: string) {
-  return value.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+type ProductAdminClient = ReturnType<typeof createClient>;
+
+async function isProductSlugTaken(supabase: ProductAdminClient, slug: string, excludeProductId?: string) {
+  let query = supabase.from("products").select("id").eq("slug", slug);
+  if (excludeProductId) query = query.neq("id", excludeProductId);
+  const { data, error } = await query.maybeSingle();
+  if (error) throw error;
+  return Boolean(data);
+}
+
+async function generateUniqueProductSlug(supabase: ProductAdminClient, baseSlug: string) {
+  for (let suffix = 1; suffix <= 100; suffix += 1) {
+    const candidate = suffix === 1 ? baseSlug : `${baseSlug}-${suffix}`;
+    if (!(await isProductSlugTaken(supabase, candidate))) return candidate;
+  }
+  throw new Error("A unique product URL could not be generated.");
+}
+
+function isUniqueViolation(error: unknown) {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "23505";
 }
 
 export function AdminProductForm({
@@ -139,6 +161,22 @@ export function AdminProductForm({
     };
 
     try {
+      const baseSlug = toSlug(!product && !slugEdited ? name : productValues.slug);
+      if (!baseSlug) {
+        setMessage("Enter a product name to generate a URL slug.");
+        return;
+      }
+
+      const productSlug = !product && !slugEdited
+        ? await generateUniqueProductSlug(supabase, baseSlug)
+        : baseSlug;
+      if ((product || slugEdited) && await isProductSlugTaken(supabase, productSlug, product?.id)) {
+        setMessage("That URL slug is already in use. Choose a unique slug before saving.");
+        return;
+      }
+      productValues.slug = productSlug;
+      setSlug(productSlug);
+
       let productId = product?.id;
       if (productId) {
         const { error } = await supabase.from("products").update({ ...productValues, status: "draft" }).eq("id", productId);
@@ -183,8 +221,10 @@ export function AdminProductForm({
       setMessage(status === "published" ? "Product saved and published to the storefront." : "Product saved.");
       router.refresh();
       if (!product) router.replace("/admin/products");
-    } catch {
-      setMessage("We couldn’t save this product. Check that its product code and URL slug are unique, then try again.");
+    } catch (error) {
+      setMessage(isUniqueViolation(error)
+        ? "Another product already uses this product code or URL slug. Choose a unique value and try again."
+        : "We couldn’t save this product. Check that its product code and URL slug are unique, then try again.");
     } finally {
       setSaving(false);
     }
@@ -196,7 +236,7 @@ export function AdminProductForm({
       <div className="admin-form-grid">
         <label className="admin-field"><span>Product name</span><input required maxLength={180} value={name} onChange={(event) => { const value = event.target.value; setName(value); if (!slugEdited) setSlug(toSlug(value)); }} /></label>
         <label className="admin-field"><span>Product code</span><input required minLength={2} maxLength={50} value={productCode} onChange={(event) => setProductCode(event.target.value.toUpperCase())} placeholder="AS-026" /></label>
-        <label className="admin-field"><span>URL slug</span><input required pattern="[a-z0-9]+(-[a-z0-9]+)*" maxLength={180} value={slug} onChange={(event) => { setSlug(toSlug(event.target.value)); setSlugEdited(true); }} /></label>
+        <label className="admin-field"><span>URL slug</span><input required pattern="[a-z0-9]+(-[a-z0-9]+)*" maxLength={180} value={slug} onChange={(event) => { setSlug(toSlug(event.target.value)); setSlugEdited(true); }} /><small>Generated from the product name. You can edit it; slugs must be unique.</small></label>
         <label className="admin-field"><span>Collection</span><select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} required>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
         <label className="admin-field admin-field-full"><span>Short description</span><input maxLength={220} value={shortDescription} onChange={(event) => setShortDescription(event.target.value)} placeholder="A concise line for product cards" /></label>
         <label className="admin-field admin-field-full"><span>Product description</span><textarea required minLength={3} maxLength={5000} rows={5} value={description} onChange={(event) => setDescription(event.target.value)} /></label>
