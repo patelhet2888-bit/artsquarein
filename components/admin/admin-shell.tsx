@@ -14,7 +14,7 @@ const navigation = [
   { label: "Site settings", href: "/admin/settings" },
 ];
 
-export function AdminShell({ children }: { children: ReactNode }) {
+export function AdminShell({ children, newEnquiryCount = 0 }: { children: ReactNode; newEnquiryCount?: number }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -35,7 +35,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <nav className="admin-navigation" aria-label="Admin navigation">
         {navigation.map((item) => {
           const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
-          return <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={active ? "is-active" : undefined}>{item.label}</Link>;
+          const hasNewEnquiries = item.href === "/admin/enquiries" && newEnquiryCount > 0;
+          return <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} aria-label={hasNewEnquiries ? `${item.label}, ${newEnquiryCount} new` : item.label} className={active ? "is-active" : undefined}><span>{item.label}</span>{hasNewEnquiries && <span className="admin-nav-count" aria-hidden="true">{newEnquiryCount > 99 ? "99+" : newEnquiryCount}</span>}</Link>;
         })}
       </nav>
       <div className="admin-sidebar-footer">

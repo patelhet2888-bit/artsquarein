@@ -91,9 +91,9 @@ body:has(.admin-shell) .whatsapp-float {
 .admin-table strong { display: block; color: var(--admin-ink); font-size: 11px; font-weight: 500; }
 .admin-table small { display: block; margin-top: 3px; color: var(--admin-muted); font-size: 9px; }
 .admin-status { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border: 1px solid var(--admin-line); color: var(--admin-muted); font-size: 8px; text-transform: uppercase; letter-spacing: .08em; }
-.admin-status.is-published, .admin-status.is-new { border-color: rgba(73, 121, 82, .28); background: rgba(73, 121, 82, .08); color: #3f704b; }
-.admin-status.is-draft, .admin-status.is-contacted { border-color: rgba(168, 132, 68, .3); background: rgba(168, 132, 68, .08); color: #826536; }
-.admin-status.is-archived, .admin-status.is-closed { background: rgba(41, 40, 36, .04); }
+.admin-status.is-published, .admin-status.is-new, .admin-status.is-in-progress { border-color: rgba(73, 121, 82, .28); background: rgba(73, 121, 82, .08); color: #3f704b; }
+.admin-status.is-draft, .admin-status.is-contacted, .admin-status.is-pending { border-color: rgba(168, 132, 68, .3); background: rgba(168, 132, 68, .08); color: #826536; }
+.admin-status.is-archived, .admin-status.is-closed, .admin-status.is-completed { background: rgba(41, 40, 36, .04); }
 .admin-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .admin-search { max-width: 340px; }
 .admin-empty { padding: 36px 20px; color: var(--admin-muted); font-size: 11px; text-align: center; }
@@ -229,4 +229,25 @@ body:has(.admin-login-page) .whatsapp-float { display: none !important; }
   .admin-enquiry-actions { align-items: stretch; flex-direction: column; }
   .admin-enquiry-actions .admin-field { min-width: 0; }
   .admin-search-label { min-width: 0; flex: 1; }
+  .admin-enquiry-filters { align-items: stretch; flex-direction: column; }
 }
+
+.admin-navigation a { justify-content: space-between; gap: 10px; }
+.admin-nav-count { min-width: 20px; height: 20px; display: inline-grid; place-items: center; padding: 0 5px; border-radius: 999px; background: #c5a46d; color: #292824; font-size: 8px; font-weight: 700; }
+.admin-email-warning { margin: 0 0 18px; padding: 13px 15px; border: 1px solid rgba(168, 132, 68, .35); background: rgba(197, 164, 109, .1); color: #6d5835; font-size: 10px; line-height: 1.7; }
+.admin-email-warning strong { margin-right: 4px; color: #4e4029; }
+.admin-enquiry-badges { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: flex-start; gap: 6px; }
+.admin-delivery-status { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border: 1px solid var(--admin-line); color: var(--admin-muted); font-size: 8px; text-transform: uppercase; letter-spacing: .06em; }
+.admin-delivery-status.is-failed { border-color: #d9b5a8; background: #fff4ef; color: #8a3c2b; }
+.admin-delivery-status.is-sent { border-color: rgba(73, 121, 82, .28); background: rgba(73, 121, 82, .08); color: #3f704b; }
+.admin-delivery-status.is-not-configured { border-color: rgba(168, 132, 68, .3); background: rgba(168, 132, 68, .08); color: #826536; }
+.admin-enquiry-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; color: var(--admin-muted); font-size: 9px; }
+.admin-enquiry-meta > span { padding: 3px 7px; border: 1px solid var(--admin-line); }
+.admin-email-delivery-note { margin: 9px 0 0; color: #826536; font-size: 9px; }
+.admin-product-details { display: grid; gap: 6px; margin: 12px 0; }
+.admin-product-details div { display: grid; grid-template-columns: 95px 1fr; gap: 10px; font-size: 9px; }
+.admin-product-details dt { color: var(--admin-muted); }
+.admin-product-details dd { margin: 0; overflow-wrap: anywhere; }
+.admin-product-details a { display: inline-flex; align-items: center; gap: 4px; color: #49614e; }
+.admin-enquiry-extra { display: grid; gap: 4px; padding-left: 16px; color: var(--admin-muted); font-size: 9px; }
+.admin-button-danger { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }

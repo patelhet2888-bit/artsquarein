@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { WHATSAPP_PHONE } from "@/lib/whatsapp";
 
 export type SiteSettings = {
   brandName: string;
@@ -19,9 +20,9 @@ export type SiteSettings = {
 export const defaultSiteSettings: SiteSettings = {
   brandName: "ART SQUARE",
   tagline: "Where art meets elegance",
-  whatsappNumber: "919054934190",
+  whatsappNumber: WHATSAPP_PHONE,
   instagramUrl: "https://www.instagram.com/art_square_in/",
-  contactEmail: "",
+  contactEmail: process.env.CONTACT_EMAIL?.trim() || "",
   announcementText: "Handcrafted with love · Custom creations available",
   heroHeadline: "Art That Makes Every Space Special.",
   heroSubheadline: "Discover thoughtfully handcrafted creations that bring together Indian artistry, meaningful details and timeless elegance.",
@@ -51,9 +52,9 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
   return {
     brandName: row.brand_name,
     tagline: row.tagline,
-    whatsappNumber: row.whatsapp_number,
+    whatsappNumber: WHATSAPP_PHONE,
     instagramUrl: row.instagram_url,
-    contactEmail: row.contact_email ?? "",
+    contactEmail: process.env.CONTACT_EMAIL?.trim() || row.contact_email || "",
     announcementText: row.announcement_text || defaultSiteSettings.announcementText,
     heroHeadline: row.hero_headline,
     heroSubheadline: row.hero_subheadline,
