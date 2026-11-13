@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUpRight, LockKeyhole } from "lucide-react";
+import { isAuthorizedAdminEmail } from "@/lib/admin-access";
 import { createClient } from "@/lib/supabase/client";
 
 export function AdminLoginForm({ initialError }: { initialError?: string }) {
@@ -11,43 +12,56 @@ export function AdminLoginForm({ initialError }: { initialError?: string }) {
   const [password, setPassword] = useState("");
   const [isRecovering, setIsRecovering] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState(initialError === "not_admin"
-    ? "This Supabase account is not authorized for storefront administration."
+  const [message, setMessage] = useState(initialError === "access_denied" || initialError === "not_admin"
+    ? "Access denied. This account is not authorized for storefront administration."
     : initialError === "auth_callback"
       ? "The sign-in link could not be verified. Please try again."
-      : "");
+      : initialError === "auth_required"
+        ? "Sign in to update your password."
+        : initialError === "auth_unavailable"
+          ? "Authentication is temporarily unavailable. Please try again later."
+          : initialError === "password_updated"
+            ? "Your password was updated. Sign in with the new password."
+            : "");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setMessage("");
     const supabase = createClient();
+    const normalizedEmail = email.trim().toLowerCase();
 
     if (isRecovering) {
+      if (!isAuthorizedAdminEmail(normalizedEmail)) {
+        setMessage("If the account is eligible, a password reset link will arrive by email.");
+        setBusy(false);
+        return;
+      }
+
       const redirect = new URL(process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`);
-      redirect.searchParams.set("next", "/admin/update-password");
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: redirect.toString() });
+      redirect.searchParams.set("next", "/auth/update-password");
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo: redirect.toString() });
       setMessage(error ? "We couldn’t send the reset link. Check the email address and try again." : "If the account is eligible, a password reset link will arrive by email.");
       setBusy(false);
       return;
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+    if (!isAuthorizedAdminEmail(normalizedEmail)) {
+      setMessage("Access denied. This account is not authorized for storefront administration.");
+      setBusy(false);
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
     if (error || !data.user) {
       setMessage("Invalid email or password.");
       setBusy(false);
       return;
     }
 
-    const { data: admin, error: adminError } = await supabase
-      .from("admin_users")
-      .select("user_id")
-      .eq("user_id", data.user.id)
-      .maybeSingle();
-
-    if (adminError || !admin) {
+    if (!isAuthorizedAdminEmail(data.user.email) || !data.user.email_confirmed_at) {
       await supabase.auth.signOut();
-      setMessage(adminError ? "Admin access is temporarily unavailable." : "This account is not authorized for storefront administration.");
+      setMessage("Access denied. This account is not authorized for storefront administration.");
       setBusy(false);
       return;
     }
@@ -68,6 +82,6 @@ export function AdminLoginForm({ initialError }: { initialError?: string }) {
     <button className="admin-text-button" type="button" onClick={() => { setIsRecovering((current) => !current); setMessage(""); }}>
       {isRecovering ? "Back to sign in" : "Forgot your password?"}
     </button>
-    <p className="admin-login-note">Admin access is invitation-only. A Supabase Auth account must be present in the ART SQUARE admin allowlist.</p>
+    <p className="admin-login-note">This app has no sign-up flow. Only the allowlisted account can manage the storefront.</p>
   </form>;
 }
