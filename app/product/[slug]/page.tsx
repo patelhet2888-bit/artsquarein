@@ -7,15 +7,24 @@ import { ProductCard } from "@/components/product-card";
 import { ProductGallery } from "@/components/product-gallery";
 import { formatPrice } from "@/lib/format";
 import { getProduct, getProductsByCategory } from "@/lib/products";
+import { getProductUrl } from "@/lib/site-url";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProduct(slug);
-  return product ? {
+  if (!product) return { title: "Piece not found" };
+
+  const productUrl = getProductUrl(product.slug);
+  const description = `${product.description} Ask ART SQUARE about price, availability and shipping by WhatsApp or the product enquiry form.`;
+  const images = product.images.slice(0, 1).map((image) => ({ url: image.src, alt: image.alt }));
+
+  return {
     title: product.name,
-    description: `${product.description} Ask ART SQUARE about price, availability and shipping by WhatsApp or the product enquiry form.`,
-    openGraph: { title: `${product.name} | ART SQUARE`, description: product.description, images: product.images.slice(0, 1).map((image) => ({ url: image.src, alt: image.alt })) },
-  } : { title: "Piece not found" };
+    description,
+    alternates: { canonical: productUrl },
+    openGraph: { type: "website", url: productUrl, title: `${product.name} | ART SQUARE`, description, images },
+    twitter: { card: "summary_large_image", title: `${product.name} | ART SQUARE`, description, images: images.map((image) => image.url) },
+  };
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -23,7 +32,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const product = await getProduct(slug);
   if (!product) notFound();
   const related = (await getProductsByCategory(product.categoryId)).filter((item) => item.id !== product.id).slice(0, 3);
-  const productUrl = new URL(`/product/${product.slug}`, process.env.NEXT_PUBLIC_SITE_URL ?? "https://artsquarein.com").toString();
+  const productUrl = getProductUrl(product.slug);
   const schema = {
     "@context": "https://schema.org",
     "@type": "Product",

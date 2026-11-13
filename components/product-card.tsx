@@ -7,15 +7,15 @@ import { ArrowUpRight, Heart, MessageCircle, X } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
 import { useShop } from "@/components/shop-provider";
-import { productEnquiryMessage, whatsappLink } from "@/lib/whatsapp";
+import { productEnquiryMessage, WHATSAPP_PHONE, whatsappLink } from "@/lib/whatsapp";
 
 export function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const { toggleWishlist, wishlist, whatsappNumber } = useShop();
+  const { toggleWishlist, wishlist } = useShop();
   const isWishlisted = wishlist.includes(product.id);
-  const productUrl = new URL(`/product/${product.slug}`, process.env.NEXT_PUBLIC_SITE_URL ?? "https://artsquarein.com").toString();
-  const enquiryHref = whatsappLink(productEnquiryMessage(product, 1, productUrl), whatsappNumber);
+  const productUrl = new URL(`/product/${product.slug}`, "https://art-square-website-development.vercel.app").toString();
+  const enquiryHref = whatsappLink(productEnquiryMessage(product, 1, productUrl), WHATSAPP_PHONE);
 
   useEffect(() => {
     const dialog = dialogRef.current;

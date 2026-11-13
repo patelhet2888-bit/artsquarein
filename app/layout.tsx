@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { WhatsAppFloat } from "@/components/whatsapp-float";
 import { getSiteSettings } from "@/lib/site-settings";
+import { getSiteOrigin } from "@/lib/site-url";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -13,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const logo = settings.logoImageUrl ?? "/logo/art-square-logo.png";
 
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://artsquarein.com"),
+    metadataBase: new URL(getSiteOrigin()),
     title: { default: `${settings.brandName} — ${settings.tagline}`, template: `%s | ${settings.brandName}` },
     description,
     openGraph: { title: `${settings.brandName} — ${settings.tagline}`, description, type: "website", images: [{ url: logo, width: 1254, height: 1254, alt: `${settings.brandName} logo` }] },

@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 import { getCatalog } from "@/lib/products";
+import { getSiteOrigin } from "@/lib/site-url";
 
-const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://artsquarein.com";
+const base = getSiteOrigin();
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { categories, products } = await getCatalog();

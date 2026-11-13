@@ -174,9 +174,81 @@ export const getCatalog = cache(async () => {
 export const getProducts = cache(async () => (await getCatalog()).products);
 export const getCategories = cache(async () => (await getCatalog()).categories);
 
-export const getProduct = cache(async (slug: string) =>
-  (await getProducts()).find((product) => product.slug === slug),
-);
+export const getProduct = cache(async (slug: string) => {
+  const supabase = await createClient();
+  const { data: row, error: productError } = await supabase
+    .from("products")
+    .select("id, product_code, slug, name, category_id, short_description, description, price_inr, material, dimensions, variants, customization, availability, is_featured, sort_order")
+    .eq("slug", slug)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (productError) throw new Error("The ART SQUARE product could not be loaded.");
+  if (!row) return undefined;
+
+  const [categoryResult, imageResult] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("id, name, slug")
+      .eq("id", row.category_id)
+      .eq("is_visible", true)
+      .maybeSingle(),
+    supabase
+      .from("product_images")
+      .select("id, product_id, media_asset_id, alt_text, sort_order, is_primary")
+      .eq("product_id", row.id)
+      .order("sort_order", { ascending: true }),
+  ]);
+
+  if (categoryResult.error) throw new Error("The ART SQUARE product collection could not be loaded.");
+  if (imageResult.error) throw new Error("The ART SQUARE product images could not be loaded.");
+  if (!categoryResult.data) return undefined;
+
+  const imageRows = imageResult.data ?? [];
+  const assetIds = [...new Set(imageRows.map((image) => image.media_asset_id))];
+  const { data: assetRows, error: assetError } = assetIds.length
+    ? await supabase.from("media_assets").select("id, storage_path, alt_text").in("id", assetIds)
+    : { data: [], error: null };
+
+  if (assetError) throw new Error("The ART SQUARE product photography could not be loaded.");
+
+  const assetById = new Map((assetRows ?? []).map((asset) => [asset.id, asset]));
+  const images: ProductImage[] = imageRows.flatMap((image) => {
+    const asset = assetById.get(image.media_asset_id);
+    if (!asset) return [];
+
+    return [{
+      id: image.id,
+      src: supabase.storage.from("art-square-media").getPublicUrl(asset.storage_path).data.publicUrl,
+      alt: image.alt_text || asset.alt_text || row.name,
+      isPrimary: image.is_primary,
+    }];
+  });
+  images.sort((first, second) => Number(second.isPrimary) - Number(first.isPrimary));
+  if (!images.length) return undefined;
+
+  return {
+    id: row.id,
+    productCode: row.product_code,
+    name: row.name,
+    slug: row.slug,
+    category: categoryResult.data.name,
+    categoryId: categoryResult.data.id,
+    categorySlug: categoryResult.data.slug,
+    description: row.description,
+    shortDescription: row.short_description,
+    price: row.price_inr === null ? undefined : Number(row.price_inr),
+    images,
+    material: row.material || undefined,
+    dimensions: row.dimensions || undefined,
+    variants: row.variants,
+    customization: customizationLabels[row.customization] ?? "Please enquire",
+    availability: availabilityLabels[row.availability] ?? availabilityLabels.unknown,
+    availabilityStatus: row.availability,
+    featured: row.is_featured,
+    sortOrder: row.sort_order,
+  } satisfies Product;
+});
 
 export const getCollection = cache(async (slug: string) =>
   (await getCategories()).find((category) => category.slug === slug),
