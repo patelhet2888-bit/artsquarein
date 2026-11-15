@@ -16,8 +16,17 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const protectedPage = isProtectedAdminPage(pathname);
   const adminApi = isAdminApi(pathname);
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url =
+    process.env.NEXT_PUBLIC_ART_SQUARE_SUPABASE_URL ??
+    process.env.ART_SQUARE_SUPABASE_URL ??
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key =
+    process.env.NEXT_PUBLIC_ART_SQUARE_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.ART_SQUARE_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_ART_SQUARE_SUPABASE_ANON_KEY ??
+    process.env.ART_SQUARE_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
     if (adminApi) return NextResponse.json({ error: "Authentication service unavailable." }, { status: 503 });
