@@ -71,8 +71,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "The file content does not match a supported image format." }, { status: 400 });
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl = process.env.ART_SQUARE_SUPABASE_URL ?? process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.ART_SQUARE_SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceRoleKey) {
     return NextResponse.json({ error: "Reference uploads are temporarily unavailable. Please contact us on WhatsApp." }, { status: 503 });
   }
